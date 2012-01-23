@@ -21,6 +21,7 @@ Example
 >>>
 >>> energy_a = force_a * distance_a
 >>> energy_a
+[ 0.40391448  0.44528124  0.10094044  0.00189099] g cm^2 s^-2
 
 
 Design
