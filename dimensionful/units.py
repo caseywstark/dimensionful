@@ -53,7 +53,6 @@ def get_unit_from_symbol(symbol):
     """
     # @todo: allow other math syntax
     # @todo: use regex instead of stupid parsing
-
     dimensions = np.zeros(num_base)
     conversion_factor = 1.0
 
@@ -127,8 +126,7 @@ class Unit:
         self.symbol_string = ""
 
         ### figure out how the unit is specified
-        if isinstance(unit_repr, str):
-            # base dimensions as ndarray
+        if isinstance(unit_repr, str):  # base dimensions as string
             # save symbol string
             self.symbol_string = unit_repr
 
@@ -137,14 +135,12 @@ class Unit:
             self.dimensions = unit_tuple[0]
             self.conversion_factor = unit_tuple[1]
 
-        elif isinstance(unit_repr, np.ndarray):
-            # base dimensions as ndarray
+        elif isinstance(unit_repr, np.ndarray):  # base dimensions as ndarray
             if len(unit_repr) is not num_base:
                 raise Exception("Wrong number of dimensions. There are %i base dimensions and you gave %i dimensions." % (num_base, len(unit_repr)))
             self.dimensions = unit_repr.copy()
 
-        elif isinstance(unit_repr, tuple) or isinstance(unit_repr, list):
-            # base dims as python stdlib data structure
+        elif isinstance(unit_repr, tuple) or isinstance(unit_repr, list):  # base dims as python stdlib data structure
             if len(unit_repr) is not num_base:
                 raise Exception("Wrong number of dimensions. There are %i base dimensions and you gave %i dimensions." % (num_base, len(unit_repr)))
             for i in xrange(num_base):
@@ -160,6 +156,9 @@ class Unit:
         if not self.symbol_string:
             # unit was not constructed with a string, so just use cgs dimensions
             self.symbol_string = self.base_string
+
+        # @todo
+        #self.power_dict = self._build_symbol_dict(self.symbol_string)
 
     @property
     def base_string(self):
@@ -186,21 +185,31 @@ class Unit:
 
         return self._base_string
 
+    # @todo
+    def _build_symbol_dict(symbol_string):
+        """
+        Convert the unit symbol string into the dictionary of powers. Example:
+        "km / s / Mpc" -> {"km": 1.0, "s": -1.0, "Mpc": -1.0}.
+
+        """
+        pass
+        #return power_dict
+
     def __repr__(self):
         return self.symbol_string
 
     def __str__(self):
         return self.symbol_string
 
-    def __mul__(self, other_unit):
+    def __mul__(self, right_object):
         """ Multiply units (multiply conversions and add dimensions). """
-        return Unit(self.dimensions + other_unit.dimensions,
-                    self.conversion_factor * other_unit.conversion_factor)
+        return Unit(self.dimensions + right_object.dimensions,
+                    self.conversion_factor * right_object.conversion_factor)
 
-    def __div__(self, other_unit):
+    def __div__(self, right_object):
         """ Divide units (divide conversions and subtract dimensions). """
-        return Unit(self.dimensions - other_unit.dimensions,
-                    self.conversion_factor / other_unit.conversion_factor)
+        return Unit(self.dimensions - right_object.dimensions,
+                    self.conversion_factor / right_object.conversion_factor)
 
     def __pow__(self, power):
         """
