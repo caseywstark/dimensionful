@@ -6,15 +6,10 @@ Copyright 2012, Casey W. Stark.
 
 """
 
-import copy
-import string
-
 import numpy as np
 
 from dimensionful.common_units import unit_symbols_dict, unit_prefixes
-
-### The "fundamental units"
-# Here we define the base dimensions and their ordering.
+from dimensions.parsing import get_unit_from_symbol
 
 # NB: For sanity, we use Gaussian E&M conventions. That is, charge is not
 # a fundamental unit and you must use the appropriate form of E&M laws.
