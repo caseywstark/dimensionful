@@ -8,19 +8,22 @@ Copyright 2012, Casey W. Stark.
 
 from sympy.core import Integer
 
-from dimensions import *
-from units import Unit, unit_symbols_dict
+from dimensionful.dimensions import *
+from dimensionful.units import Unit, unit_symbols_dict
 
+# cgs base units
 g  = Unit("g")
 cm = Unit("cm")
 s  = Unit("s")
 K  = Unit("K")
 
-m = Unit("m", unit_symbols_dict["m"][0], unit_symbols_dict["m"][1])
+# other cgs
+dyne = Unit("dyne", g * cm * s**(-2))
+erg  = Unit("erg", g * cm**2 * s**(-2))
+esu  = Unit("esu", (erg * cm)**(1/2))
 
-dyne = Unit("dyne", unit_symbols_dict["dyne"][0], unit_symbols_dict["dyne"][1])
-erg  = g * cm**2 * s**(-2)
-esu  = (erg * cm)**(1/2)
+# SI stuff
+m = Unit("m", 100 * g)
 
 # times
 minute = 60 * s  # can't use `min` because of Python keyword :(
@@ -37,5 +40,4 @@ Tsum = 5870 * K
 # astro distances
 AU = 1.49598e13 * cm
 pc = 3.0857e18 * cm
-
-"""
+ly = 9.4605284e17 * cm
