@@ -18,26 +18,26 @@ s  = Unit("s")
 K  = Unit("K")
 
 # other cgs
-dyne = Unit("dyne", g * cm * s**(-2))
-erg  = Unit("erg", g * cm**2 * s**(-2))
-esu  = Unit("esu", (erg * cm)**(1/2))
+dyne = Unit("dyne")
+erg  = Unit("erg")
+esu  = Unit("esu")
 
 # SI stuff
-m = Unit("m", 100 * g)
+m = Unit("m")
 
 # times
-minute = 60 * s  # can't use `min` because of Python keyword :(
-hr = 60 * minute
-day = 24 * hr
-yr = 365 * day
+minute = Unit("min")  # can't use `min` because of Python keyword :(
+hr = Unit("hr")
+day = Unit("day")
+yr = Unit("yr")
 
 # solar units
-Msun = 1.98892e33 * g
-Rsun = 6.96e10 * cm
-Lsun = 3.9e33 * erg
-Tsum = 5870 * K
+Msun = Unit("Msun")
+Rsun = Unit("Rsun")
+Lsun = Unit("Lsun")
+Tsum = Unit("Tsun")
 
 # astro distances
-AU = 1.49598e13 * cm
-pc = 3.0857e18 * cm
-ly = 9.4605284e17 * cm
+AU = Unit("AU")
+pc = Unit("pc")
+ly = Unit("ly")

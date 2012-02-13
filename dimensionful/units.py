@@ -45,7 +45,8 @@ unit_symbols_dict = {
 
     # astro distances
     "AU": (1.49598e13, length),
-    "pc": (3.0857e18, length),
+    "ly": (9.46053e17, length),
+    "pc": (3.08568e18, length),
 
     # other astro
     "H_0": (2.3e-18, rate),  # check cf
@@ -72,70 +73,11 @@ unit_prefixes = {
     'y': 1e-24,  # yocto
 }
 
-def make_symbol_expr(expr):
-    """
-    Turns an expression containing unit objects into one containing only symbol
-    objects.
-
-    """
-    if isinstance(expr, Symbol):
-        # Hit a Symbol. This is what we want, so just give it back.
-        return expr
-    elif isinstance(expr, Unit):
-        # Hit a Unit. Get the Symbol objects out.
-        if expr.is_atomic:
-            return expr.args[0]
-
-        for i, arg in enumerate(expr.args):
-            expr.args[i] = make_symbol_expr(arg)
-    elif isinstance(expr, Pow) or isinstance(expr, Mul):
-        # Hit a Pow or Mul. Use recursion on args.
-        for i, arg in enumerate(expr.args):
-            expr.args[i] = make_symbol_expr(arg)
-
-    raise Exception("Cannot parse '%s' for known unit symbols. Please simplify your expression." % str(expr))
-
-
-def make_unit_expr(expr):
-    """
-    Takes in any valid expression containing unit objects. Turns all symbols
-    into units.
-
-    Parameters
-    ----------
-    expr : sympy.core.expr.Expr
-        Expression to parse for symbol objects. Should only contain Pow, Mul,
-        Symbol, or Unit objects.
-
-    Returns
-    -------
-    Expr object with only Unit, Pow, and Mul objects.
-
-    """
-    if isinstance(expr, Unit):
-        # Hit a Unit. This is what we want, so just give it back.
-        return expr
-    elif isinstance(expr, Symbol):
-        # Hit a Symbol. Make it a unit. Unit construction will handle the
-        # exception if we do not know this unit symbol.
-        return Unit(expr)
-    elif isinstance(expr, Pow) or isinstance(expr, Mul):
-        # Hit a Pow or Mul. Use recursion on args.
-        for i, arg in enumerate(expr.args):
-            expr.args[i] = make_unit_expr(arg)
-
-    raise Exception("Cannot parse '%s' for known unit symbols. Please simplify your expression." % str(expr))
-
-def get_unit_data_from_expr(unit_expr, cgs_value, dimensions):
+def get_unit_data_from_expr(unit_expr, cgs_value=None, dimensions=None):
     """
     Gets total cgs_value and dimensions from a unit expression.
 
     """
-
-    # DEBUG
-    print "New expr is:\t%s" % str(unit_expr)
-    print "Type is:\t%s" % type(unit_expr)
-
     if isinstance(unit_expr, Symbol):
         return get_unit_data_from_symbol(unit_expr, cgs_value, dimensions)
 
@@ -143,18 +85,22 @@ def get_unit_data_from_expr(unit_expr, cgs_value, dimensions):
         return (1, 1)
 
     elif isinstance(unit_expr, Pow):
-        unit_data = get_unit_data_from_expr(unit_expr.args[0], cgs_value,
-                                            dimensions)
+        unit_data = get_unit_data_from_expr(unit_expr.args[0])
         power = unit_expr.args[1]
         return (unit_data[0]**power, unit_data[1]**power)
 
     elif isinstance(unit_expr, Mul):
-        cgs_value = 1
-        dimensions = 1
         for i, expr in enumerate(unit_expr.args):
-            unit_data = get_unit_data_from_expr(expr, cgs_value, dimensions)
-            cgs_value *= unit_data[0]
-            dimensions *= unit_data[1]
+            unit_data = get_unit_data_from_expr(expr)
+            # @todo: stupid
+            if cgs_value:
+                cgs_value *= unit_data[0]
+            else:
+                cgs_value = unit_data[0]
+            if dimensions:
+                dimensions *= unit_data[1]
+            else:
+                dimensions = unit_data[1]
 
         return (cgs_value, dimensions)
 
@@ -193,9 +139,15 @@ def get_unit_data_from_symbol(unit_expr, cgs_value, dimensions):
 
         return (cgs_value, dimensions)
 
-    symbol_string = str(unit_expr)
+    # try to find in known units
+    return lookup_unit_symbol(str(unit_expr))
 
-    # lookup this symbol in known unit symbols
+def lookup_unit_symbol(symbol_string):
+    """
+    Find the unit data of this symbol. Raise an exception if not found.
+
+    """
+
     if symbol_string in unit_symbols_dict:
         # lookup successful, return the tuple directly
         return unit_symbols_dict[symbol_string]
@@ -211,14 +163,13 @@ def get_unit_data_from_symbol(unit_expr, cgs_value, dimensions):
             # lookup successful, it's a symbol with a prefix
             unit_data = unit_symbols_dict[symbol_wo_prefix]
             prefix_value = unit_prefixes[possible_prefix]
+
             # don't forget to account for the prefix value!
             return (unit_data[0] * prefix_value, unit_data[1])
-        else:
-            # no dice
-            raise Exception("Unknown unit symbol '%s'. Please supply them when creating this object." % symbol_string)
-    else:
-        # no dice
-        raise Exception("Unknown unit symbol '%s'. Please supply them when creating this object." % symbol_string)
+
+    # no dice
+    raise Exception("Unknown unit symbol '%s'. Please supply them when creating this object." % symbol_string)
+
 
 class Unit(Expr):
     """
@@ -233,8 +184,8 @@ class Unit(Expr):
 
     __slots__ = ["symbol", "is_atomic", "expr", "cgs_value", "dimensions"]
 
-    def __new__(cls, symbol=None, unit_expr=None, cgs_value=None,
-                dimensions=None):
+    def __new__(cls, unit_expr=None, cgs_value=None, dimensions=None,
+                **assumptions):
         """
         Build a new unit. May be an atomic unit (like a gram) or a combination
         of other units (like g / cm**3). Either way, you can make the unit
@@ -242,8 +193,6 @@ class Unit(Expr):
 
         Parameters
         ----------
-        symbol : string
-            Unit symbol. "g" for gram.
         unit_expr : string or sympy.core.expr.Expr
             The symbolic expression. Symbol(g) for gram.
         cgs_value : float
@@ -254,10 +203,6 @@ class Unit(Expr):
             and temperature objects to various powers. (mass) for gram.
 
         """
-        # stupid check
-        if isinstance(unit_expr, Unit):
-            raise Exception("Cannot create a Unit object out of a Unit object...")
-
         # if we have a string, parse into an expression
         if isinstance(unit_expr, str):
             unit_expr = parse_expr(unit_expr)
@@ -271,13 +216,13 @@ class Unit(Expr):
         if isinstance(unit_expr, Symbol):
             is_atomic = True
 
-        this_cgs_value = 1
-        this_dimensions = 1
+        # this call handles if there is not enough information between the three
+        # arguments and our known unit symbols
         this_cgs_value, this_dimensions = \
             get_unit_data_from_expr(unit_expr, cgs_value, dimensions)
 
         # init obj with superclass construct
-        obj = Expr.__new__(cls, unit_expr.args, **assumptions)
+        obj = Expr.__new__(cls, **assumptions)
 
         # attach attributes to obj
         obj.expr = unit_expr
@@ -315,9 +260,6 @@ class Unit(Expr):
         return Unit(self.expr * right_object.expr,
                     self.cgs_value * right_object.cgs_value,
                     self.dimensions * right_object.dimensions)
-
-    def __rmul__(left_object, self):
-        """ Multiply left_object
 
     def __div__(self, right_object):
         """ Divide Unit by right_object (Unit). """
