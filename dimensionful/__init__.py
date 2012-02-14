@@ -10,3 +10,4 @@ from dimensionful.units import Unit
 from dimensionful.quantity import Quantity
 
 from dimensionful.common_units import *
+from dimensionful.constants import *
