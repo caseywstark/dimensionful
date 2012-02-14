@@ -9,16 +9,17 @@ Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 import numpy as np
 
 from dimensionful.common_units import *
+from dimensionful.quantity import Quantity
 
 # speed of light
-c = 2.99792458e10 * cm * s**-1
+c = Quantity(2.99792458e10, cm / s)
 
 # Gravitational constant
-G = 6.673e-8 * cm**3 * g**-1 * s**-2
+G = Quantity(6.673e-8, cm**3 * g**-1 * s**-2)
 
 # Boltzmann constant
-k = 1.38064e-16 * erg * K**1
+k = Quantity(1.38064e-16, erg * K)
 
 # Planck constant
-h = 6.626070e-27 * erg * s
+h = Quantity(6.626070e-27, erg * s)
 hbar = h / (2 * np.pi)
