@@ -73,107 +73,6 @@ unit_prefixes = {
     'y': 1e-24,  # yocto
 }
 
-def get_unit_data_from_expr(unit_expr, cgs_value=None, dimensions=None):
-    """
-    Gets total cgs_value and dimensions from a unit expression.
-
-    """
-    if cgs_value and dimensions:
-        return (cgs_value, dimensions)
-
-    if isinstance(unit_expr, Symbol):
-        return get_unit_data_from_symbol(unit_expr, cgs_value, dimensions)
-
-    elif isinstance(unit_expr, Number):
-        return (1, 1)
-
-    elif isinstance(unit_expr, Pow):
-        unit_data = get_unit_data_from_expr(unit_expr.args[0])
-        power = unit_expr.args[1]
-        return (unit_data[0]**power, unit_data[1]**power)
-
-    elif isinstance(unit_expr, Mul):
-        for i, expr in enumerate(unit_expr.args):
-            unit_data = get_unit_data_from_expr(expr)
-            # @todo: stupid
-            if cgs_value:
-                cgs_value *= unit_data[0]
-            else:
-                cgs_value = unit_data[0]
-            if dimensions:
-                dimensions *= unit_data[1]
-            else:
-                dimensions = unit_data[1]
-
-        return (cgs_value, dimensions)
-
-    raise Exception("Cannot get unit data from '%s'." % str(unit_expr))
-
-def get_unit_data_from_symbol(unit_expr, cgs_value, dimensions):
-    """
-    Utility for getting cgs_value and dimensions arguments, or pulling
-    the info of a known unit symbol, for a single symbol.
-
-    """
-    if cgs_value or dimensions:
-        # supplied one of them, so we are not depending on known symbols
-
-        # get the most common case out of the way
-        if cgs_value and dimensions:
-            return (cgs_value, dimensions)
-
-        # stupid checks
-        if cgs_value and not dimensions:
-            raise Exception("Not enough information creating Unit '%s'. Supplied a cgs value, but no dimensions." % str(unit_expr))
-        if dimensions and not cgs_value:
-            # assume they wanted it in cgs
-            cgs_value = 1
-        # make sure cgs_value is actually a number
-        try:
-            cgs_value = float(cgs_value)
-        except ValueError:
-            raise Exception("Supplied %s as the conversion factor to cgs values. Must supply a float." % cgs_value)
-
-        # confirm that it's a valid dimensionality
-        # @todo: actually confirm it is just a Mul of mass, length, ...
-        # to some powers.
-        if not isinstance(dimensions, Expr):
-            raise Exception("Dimensions used to create a Unit object must be a sympy expression (sympy.core.basic.Basic)! '%s' is a %s." % (str(dimensions), type(dimensions)))
-
-        return (cgs_value, dimensions)
-
-    # try to find in known units
-    return lookup_unit_symbol(str(unit_expr))
-
-def lookup_unit_symbol(symbol_string):
-    """
-    Find the unit data of this symbol. Raise an exception if not found.
-
-    """
-
-    if symbol_string in unit_symbols_dict:
-        # lookup successful, return the tuple directly
-        return unit_symbols_dict[symbol_string]
-
-    # could still be a known symbol with a prefix
-    possible_prefix = symbol_string[0]
-    if possible_prefix in unit_prefixes:
-        # the first character could be a prefix, check the rest of
-        # the symbol
-        symbol_wo_prefix = symbol_string[1:]
-
-        if symbol_wo_prefix in unit_symbols_dict:
-            # lookup successful, it's a symbol with a prefix
-            unit_data = unit_symbols_dict[symbol_wo_prefix]
-            prefix_value = unit_prefixes[possible_prefix]
-
-            # don't forget to account for the prefix value!
-            return (unit_data[0] * prefix_value, unit_data[1])
-
-    # no dice
-    raise Exception("Unknown unit symbol '%s'. Please supply them when creating this object." % symbol_string)
-
-
 class Unit(Expr):
     """
     Using sympy to represent units as symbols. We just supply extra methods
@@ -294,6 +193,107 @@ class Unit(Expr):
     @property
     def is_dimensionless(self):
         return self.dimensions == 1
+
+
+def get_unit_data_from_expr(unit_expr, cgs_value=None, dimensions=None):
+    """
+    Gets total cgs_value and dimensions from a unit expression.
+
+    """
+    if cgs_value and dimensions:
+        return (cgs_value, dimensions)
+
+    if isinstance(unit_expr, Symbol):
+        return get_unit_data_from_symbol(unit_expr, cgs_value, dimensions)
+
+    elif isinstance(unit_expr, Number):
+        return (1, 1)
+
+    elif isinstance(unit_expr, Pow):
+        unit_data = get_unit_data_from_expr(unit_expr.args[0])
+        power = unit_expr.args[1]
+        return (unit_data[0]**power, unit_data[1]**power)
+
+    elif isinstance(unit_expr, Mul):
+        for i, expr in enumerate(unit_expr.args):
+            unit_data = get_unit_data_from_expr(expr)
+            # @todo: stupid
+            if cgs_value:
+                cgs_value *= unit_data[0]
+            else:
+                cgs_value = unit_data[0]
+            if dimensions:
+                dimensions *= unit_data[1]
+            else:
+                dimensions = unit_data[1]
+
+        return (cgs_value, dimensions)
+
+    raise Exception("Cannot get unit data from '%s'." % str(unit_expr))
+
+def get_unit_data_from_symbol(unit_expr, cgs_value, dimensions):
+    """
+    Utility for getting cgs_value and dimensions arguments, or pulling
+    the info of a known unit symbol, for a single symbol.
+
+    """
+    if cgs_value or dimensions:
+        # supplied one of them, so we are not depending on known symbols
+
+        # get the most common case out of the way
+        if cgs_value and dimensions:
+            return (cgs_value, dimensions)
+
+        # stupid checks
+        if cgs_value and not dimensions:
+            raise Exception("Not enough information creating Unit '%s'. Supplied a cgs value, but no dimensions." % str(unit_expr))
+        if dimensions and not cgs_value:
+            # assume they wanted it in cgs
+            cgs_value = 1
+        # make sure cgs_value is actually a number
+        try:
+            cgs_value = float(cgs_value)
+        except ValueError:
+            raise Exception("Supplied %s as the conversion factor to cgs values. Must supply a float." % cgs_value)
+
+        # confirm that it's a valid dimensionality
+        # @todo: actually confirm it is just a Mul of mass, length, ...
+        # to some powers.
+        if not isinstance(dimensions, Expr):
+            raise Exception("Dimensions used to create a Unit object must be a sympy expression (sympy.core.basic.Basic)! '%s' is a %s." % (str(dimensions), type(dimensions)))
+
+        return (cgs_value, dimensions)
+
+    # try to find in known units
+    return lookup_unit_symbol(str(unit_expr))
+
+def lookup_unit_symbol(symbol_string):
+    """
+    Find the unit data of this symbol. Raise an exception if not found.
+
+    """
+
+    if symbol_string in unit_symbols_dict:
+        # lookup successful, return the tuple directly
+        return unit_symbols_dict[symbol_string]
+
+    # could still be a known symbol with a prefix
+    possible_prefix = symbol_string[0]
+    if possible_prefix in unit_prefixes:
+        # the first character could be a prefix, check the rest of
+        # the symbol
+        symbol_wo_prefix = symbol_string[1:]
+
+        if symbol_wo_prefix in unit_symbols_dict:
+            # lookup successful, it's a symbol with a prefix
+            unit_data = unit_symbols_dict[symbol_wo_prefix]
+            prefix_value = unit_prefixes[possible_prefix]
+
+            # don't forget to account for the prefix value!
+            return (unit_data[0] * prefix_value, unit_data[1])
+
+    # no dice
+    raise Exception("Unknown unit symbol '%s'. Please supply them when creating this object." % symbol_string)
 
 # util function
 def get_conversion_factor(old_units, new_units):
