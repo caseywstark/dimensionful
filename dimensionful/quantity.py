@@ -75,7 +75,14 @@ class Quantity:
         self.data *= conversion_factor
         self.units = new_units
 
-    # Could add convert_to_cgs method here.
+    def convert_to_cgs(self):
+        """
+        Convert the data and units to cgs equivalent units. This does not return
+        the new data -- it overwrites the ``data`` and ``units`` attributes.
+        Use it wisely.
+
+        """
+        self.convert_to(self.units.get_cgs_equivalent())
 
     def get_in(self, units):
         """
@@ -96,10 +103,9 @@ class Quantity:
         conversion_factor = get_conversion_factor(self.units, new_units)
         return Quantity(self.data * conversion_factor, new_units)
 
-    # @todo
     def get_in_cgs(self):
         """ Returns a new quantity with CGS values and units. """
-        pass #return Quantity(self.data * self.units.conversion_factor, self.units.dimensions)
+        return self.get_in(self.units.get_cgs_equivalent())
 
     def get_data_in(self, units):
         """
@@ -126,15 +132,8 @@ class Quantity:
 
     # @todo
     def get_data_in_cgs(self):
-        """
-        Returns data in CGS. Avoids the conversion operation if already in CGS.
-
-
-        if self.units.conversion_factor != 1.0:
-            return self.data * self.units.conversion_factor
-        return self.data
-        """
-        pass
+        """ Returns data in CGS. """
+        self.get_data_in(self.units.get_cgs_equivalent())
 
     def __add__(self, right_object):
         """
