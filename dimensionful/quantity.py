@@ -130,10 +130,9 @@ class Quantity:
         conversion_factor = get_conversion_factor(self.units, new_units)
         return self.data * conversion_factor
 
-    # @todo
     def get_data_in_cgs(self):
         """ Returns data in CGS. """
-        self.get_data_in(self.units.get_cgs_equivalent())
+        return self.get_data_in(self.units.get_cgs_equivalent())
 
     def __add__(self, right_object):
         """

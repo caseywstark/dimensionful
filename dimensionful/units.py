@@ -203,6 +203,7 @@ class Unit(Expr):
         return self.dimensions == 1
 
     def get_cgs_equivalent(self):
+        """ Create and return dimensionally-equivalent cgs units. """
         cgs_units_string = "g**%s * cm**%s * s**%s * K**%s" % \
             (self.dimensions.as_coeff_exponent(mass)[1],
              self.dimensions.as_coeff_exponent(length)[1],
