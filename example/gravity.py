@@ -2,7 +2,7 @@
 
 Compute the force of gravity between the Earth and Sun.
 
-Copyright 2011 Casey W. Stark.
+Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 
