@@ -2,7 +2,7 @@
 
 Define the common units, in the array of powers form.
 
-Copyright 2012, Casey W. Stark.
+Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 

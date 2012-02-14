@@ -2,7 +2,7 @@
 
 Physical constants.
 
-Copyright 2012, Casey W. Stark.
+Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 
