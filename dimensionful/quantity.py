@@ -2,21 +2,11 @@
 
 Define quantities and operations on them.
 
-Copyright 2012, Casey W. Stark.
+Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 
-from dimensionful.units import Unit
-
-# util function
-def unit_from_repr(unit_repr):
-    """
-    Takes a unit object, symbol, or powers array. Returns a unit object.
-
-    """
-    if isinstance(unit_repr, Unit):
-        return unit_repr
-    return Unit(unit_repr)
+from dimensionful.units import Unit, get_conversion_factor
 
 # @todo: Verify that we need type checks in all of the left and right operator
 # methods (ex: __add__ and __radd__). I think they are only needed in the left
@@ -45,11 +35,6 @@ class Quantity:
         # make units
         if isinstance(unit_repr, Unit):
             self.units = unit_repr
-        elif isinstance(unit_repr, Quantity):
-            # not the cleanest behavior, but users might find this useful. Must
-            # multiply data as if this is a unit with a prefactor in cgs.
-            self.data *= unit_repr.data  # @todo: test this with arrays...
-            self.units = unit_repr.units
         else:
             self.units = Unit(unit_repr)
 
@@ -59,20 +44,21 @@ class Quantity:
     def __str__(self):
         return "%s %s" % (self.data, self.units)
 
-    def _unit_repr_check_same(self, unit_repr):
+    def _unit_repr_check_same(self, units):
         """
-        Get unit, whichever representation, and check that it is compatible with
-        this quantity.
+        Takes a Unit object, or string of known unit symbol, and check that it
+        is compatible with this quantity. Returns Unit object.
 
         """
-        unit = unit_from_repr(unit_repr)
+        if not isinstance(units, Unit):
+            units = Unit(units)
 
-        if not self.units.same_dimensions_as(unit):
-            raise Exception("Cannot convert to units with different dimensionality. Current unit is %s, argument is %s" % (self.units, unit))
+        if not self.units.same_dimensions_as(units):
+            raise Exception("Cannot convert to units with different dimensionality. Current unit is %s, argument is %s" % (self.units.dimensions, units))
 
-        return unit
+        return units
 
-    def convert_to(self, unit_repr):
+    def convert_to(self, units):
         """
         Convert the data and units to given unit. This does not return the new
         data -- it overwrites the ``data`` and ``units`` attributes. Use it
@@ -80,69 +66,75 @@ class Quantity:
 
         Parameters
         ----------
-        unit_repr : Unit object or string
+        units : Unit object or string
             The units you want the data in.
 
         """
-        unit = self._unit_repr_check_same(unit_repr)
-        self.data *= self.units.conversion_factor / unit.conversion_factor
-        self.units = unit
+        new_units = self._unit_repr_check_same(units)
+        conversion_factor = get_conversion_factor(self.units, new_units)
+        self.data *= conversion_factor
+        self.units = new_units
 
-    def get_in(self, unit_repr):
+    # Could add convert_to_cgs method here.
+
+    def get_in(self, units):
         """
         Returns a new quantity in the given units (manipulates data to match).
         Does not manipulate this object.
 
         Parameters
         ----------
-        unit_repr : Unit object or string
+        units : Unit object or string
             The units you want to get a new quantity in.
 
         Returns
         -------
-        New Quantity
+        New Quantity object.
 
         """
-        unit = self._unit_repr_check_same(unit_repr)
-        return Quantity(self.data * self.units.conversion_factor / unit.conversion_factor, unit)
+        new_units = self._unit_repr_check_same(units)
+        conversion_factor = get_conversion_factor(self.units, new_units)
+        return Quantity(self.data * conversion_factor, new_units)
 
-    def get_data_in(self, unit_repr):
+    # @todo
+    def get_in_cgs(self):
+        """ Returns a new quantity with CGS values and units. """
+        pass #return Quantity(self.data * self.units.conversion_factor, self.units.dimensions)
+
+    def get_data_in(self, units):
         """
         Returns converted data only.
 
         Parameters
         ----------
-        unit_repr : Unit object or string
+        units : Unit object or string
             The units you want the data in.
 
         Returns
         -------
-        data : object
-            This quantity's data, in the desired units.
+        This quantity's data, in the desired units.
 
         """
-        unit = self._unit_repr_check_same(unit_repr)
+        new_units = self._unit_repr_check_same(units)
 
         # don't operate on data if given the same units
-        if self.units == unit:
+        if self.units == new_units:
             return self.data
 
-        return self.data * self.units.conversion_factor / unit.conversion_factor
+        conversion_factor = get_conversion_factor(self.units, new_units)
+        return self.data * conversion_factor
 
-    # Could add convert_to_cgs method here.
-
-    def get_in_cgs(self):
-        """ Returns a new quantity with CGS values and units. """
-        return Quantity(self.data * self.units.conversion_factor, self.units.dimensions)
-
+    # @todo
     def get_data_in_cgs(self):
         """
         Returns data in CGS. Avoids the conversion operation if already in CGS.
 
-        """
+
         if self.units.conversion_factor != 1.0:
             return self.data * self.units.conversion_factor
         return self.data
+        """
+        pass
 
     def __add__(self, right_object):
         """
@@ -155,10 +147,10 @@ class Quantity:
             if not self.units.same_dimensions_as(right_object.units):
                 raise Exception("You cannot add these quantities because their dimensions do not match. `%s + %s` is ill-defined" % (self.units, right_object.units))
         else:  # the only way this works is with a float so...
-            if self.units.is_dimensionless:
+            if not self.units.is_dimensionless:
                 raise Exception("You cannot add a pure number to a dimensional quantity. `%s + %s` is ill-defined." % (self, right_object))
 
-            # case of self + float
+            # case of dimensionless self + float
             return Quantity(self.data + right_object, self.units)
 
         # `get_data_in` will not apply the conversion if the units are the same
@@ -176,10 +168,10 @@ class Quantity:
             if not self.units.same_dimensions_as(left_object.units):
                 raise Exception("You cannot add these quantities because their dimensions do not match. `%s + %s` is ill-defined" % (left_object.units, self.units))
         else:  # the only way this works is with a float so...
-            if self.units.is_dimensionless:
+            if not self.units.is_dimensionless:
                 raise Exception("You cannot add a pure number to a dimensional quantity. `%s + %s` is ill-defined." % (left_object, self))
 
-            # case of float + self
+            # case of dimensionless float + self
             return Quantity(left_object + self.data, self.units)
 
         # `get_data_in` will not apply the conversion if the units are the same
@@ -198,10 +190,10 @@ class Quantity:
             if not self.units.same_dimensions_as(right_object.units):
                 raise Exception("You cannot add these quantities because their dimensions do not match. `%s - %s` is ill-defined" % (self.units, right_object.units))
         else:  # the only way this works is with a float so...
-            if self.units.is_dimensionless:
+            if not self.units.is_dimensionless:
                 raise Exception("You cannot add a pure number to a dimensional quantity. `%s - %s` is ill-defined." % (self, right_object))
 
-            # case of self + float
+            # case of dimensionless self + float
             return Quantity(self.data - right_object, self.units)
 
         # `get_data_in` will not apply the conversion if the units are the same
@@ -219,10 +211,10 @@ class Quantity:
             if not self.units.same_dimensions_as(left_object.units):
                 raise Exception("You cannot add these quantities because their dimensions do not match. `%s - %s` is ill-defined" % (left_object.units, self.units))
         else:  # the only way this works is with a float so...
-            if self.units.is_dimensionless:
+            if not self.units.is_dimensionless:
                 raise Exception("You cannot add a pure number to a dimensional quantity. `%s - %s` is ill-defined." % (left_object, self))
 
-            # case of float + self
+            # case of dimensionless float + self
             return Quantity(left_object - self.data, self.units)
 
         # `get_data_in` will not apply the conversion if the units are the same
@@ -284,7 +276,6 @@ class Quantity:
 
         # `left_object` is not a Quantity object, so try to use it as
         # dimensionless data.
-        # @todo: cleaner unit division syntax
         return Quantity(left_object / self.data, self.units**(-1))
 
     def __pow__(self, power):
@@ -298,7 +289,7 @@ class Quantity:
 
         """
         if isinstance(power, Quantity):
-            if power.units.is_dimensionless():
+            if power.units.is_dimensionless:
                 return Quantity(self.data**power.data, self.units**power.data)
             else:
                 raise Exception("The power argument must be dimensionless. (%s)**(%s) is ill-defined." % (self, power))

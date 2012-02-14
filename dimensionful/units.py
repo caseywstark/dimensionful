@@ -6,7 +6,7 @@ Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 
-from sympy.core import Expr, Number, Mul, Pow, Symbol
+from sympy import Expr, Mul, Number, Pow, Symbol, sympify
 from sympy.parsing.sympy_parser import parse_expr
 
 from dimensionful.dimensions import *
@@ -78,6 +78,9 @@ def get_unit_data_from_expr(unit_expr, cgs_value=None, dimensions=None):
     Gets total cgs_value and dimensions from a unit expression.
 
     """
+    if cgs_value and dimensions:
+        return (cgs_value, dimensions)
+
     if isinstance(unit_expr, Symbol):
         return get_unit_data_from_symbol(unit_expr, cgs_value, dimensions)
 
@@ -203,6 +206,10 @@ class Unit(Expr):
             and temperature objects to various powers. (mass) for gram.
 
         """
+        # Check for no args
+        if not unit_expr:
+            unit_expr = sympify(1)
+
         # if we have a string, parse into an expression
         if isinstance(unit_expr, str):
             unit_expr = parse_expr(unit_expr)
@@ -216,10 +223,19 @@ class Unit(Expr):
         if isinstance(unit_expr, Symbol):
             is_atomic = True
 
+        print ""
+        print unit_expr
+        print cgs_value
+        print dimensions
+
         # this call handles if there is not enough information between the three
         # arguments and our known unit symbols
         this_cgs_value, this_dimensions = \
             get_unit_data_from_expr(unit_expr, cgs_value, dimensions)
+
+        print this_cgs_value
+        print this_dimensions
+        print ""
 
         # init obj with superclass construct
         obj = Expr.__new__(cls, **assumptions)
@@ -263,6 +279,10 @@ class Unit(Expr):
 
     def __div__(self, right_object):
         """ Divide Unit by right_object (Unit). """
+        print self.expr, right_object.expr, self.expr / right_object.expr
+        print self.cgs_value, right_object.cgs_value, self.cgs_value / right_object.cgs_value
+        print self.dimensions, right_object.dimensions, self.dimensions / right_object.dimensions
+
         return Unit(self.expr / right_object.expr,
                     self.cgs_value / right_object.cgs_value,
                     self.dimensions / right_object.dimensions)
@@ -276,6 +296,11 @@ class Unit(Expr):
     def same_dimensions_as(self, other_unit):
         """ Test if dimensions are the same. """
         return (self.dimensions / other_unit.dimensions) == 1
+
+    def __eq__(self, other_unit):
+        """ Test equality: dimensions and cgs_value. """
+        return ( self.cgs_value == other_unit.cgs_value
+                 and self.dimensions == other_unit.dimensions )
 
     @property
     def is_dimensionless(self):
