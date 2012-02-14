@@ -117,6 +117,8 @@ class Unit(Expr):
             raise Exception("Unit representation must be a string or sympy Expr. %s is a %s" % (unit_expr, type(unit_expr)))
         # done with argument checking...
 
+        unit_expr = sympify(unit_expr)
+
         # see if the unit is atomic.
         is_atomic = False
         if isinstance(unit_expr, Symbol):
@@ -133,7 +135,7 @@ class Unit(Expr):
         obj = Expr.__new__(cls, **assumptions)
 
         # attach attributes to obj
-        obj.expr = unit_expr
+        obj.expr = sympify(unit_expr)
         obj.is_atomic = is_atomic
         obj.cgs_value = this_cgs_value
         obj.dimensions = this_dimensions
@@ -185,15 +187,28 @@ class Unit(Expr):
         """ Test if dimensions are the same. """
         return (self.dimensions / other_unit.dimensions) == 1
 
-    def __eq__(self, other_unit):
-        """ Test equality: dimensions and cgs_value. """
-        return ( self.cgs_value == other_unit.cgs_value
-                 and self.dimensions == other_unit.dimensions )
+    def __eq__(self, right_object):
+        """
+        Test equality. If another Unit, check dimensions and cgs_value. If a
+        sympy object, all bets are off.
+
+        """
+        if isinstance(right_object, Unit):
+            return ( self.cgs_value == right_object.cgs_value
+                     and self.dimensions == right_object.dimensions )
+        return False
 
     @property
     def is_dimensionless(self):
         return self.dimensions == 1
 
+    def get_cgs_equivalent(self):
+        cgs_units_string = "g**%s * cm**%s * s**%s * K**%s" % \
+            (self.dimensions.as_coeff_exponent(mass)[1],
+             self.dimensions.as_coeff_exponent(length)[1],
+             self.dimensions.as_coeff_exponent(time)[1],
+             self.dimensions.as_coeff_exponent(temperature)[1])
+        return Unit(cgs_units_string, 1, self.dimensions)
 
 def get_unit_data_from_expr(unit_expr, cgs_value=None, dimensions=None):
     """
