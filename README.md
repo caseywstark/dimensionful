@@ -1,28 +1,44 @@
 Dimensionful
 ============
 
-Simple system for making data dimensionful.
+A simple library for making your data dimensionful.
+
+Install
+-------
+
+Dimensionful depends on sympy. Please install sympy first, then dimensionful.
+
+    $ pip install sympy
+    $ cd dimensionful
+    $ python setup.py install
+
+I'm looking into putting the project on pypi, so you can also ``pip install
+dimensionful``. In the meantime, please use the normal distutils installer in
+`setup.py`.
 
 Example
 -------
 
-This computes the force of gravity between the Earth and Sun. Prints ``The force
-of gravity between the Earth and Sun is 7.92899597305e+53 g cm s^-2``
+This prints "The force of gravity between the Earth and Sun is
+3.54296304519e+27 cm*g/s**2".
 
-    from dimensionful.quantity import Quantity
-    from dimensionful.constants import G
+    # Import the gravitational constant and the Quantity class
+    from dimensionful import G, Quantity
 
     # Supply the mass of Earth, mass of Sun, and the distance between.
-    m1 = Quantity(5.9742e27, "g")
-    m2 = Quantity(1.98892e33, "g")
-    r = Quantity(1.0, "AU")
+    mass_earth = Quantity(5.9742e27, "g")
+    mass_sun = Quantity(1.0, "Msun")
+    distance = Quantity(1.0, "AU")
 
     # Calculate it
-    force_gravity = G * m1 * m2 / r**2
+    force_gravity = G * mass_earth * mass_sun / distance**2
+    force_gravity.convert_to_cgs()
 
     # Report
     print "The force of gravity between the Earth and Sun is %s" % force_gravity
 
+
+You can also find this in the `example` directory.
 
 Documentation
 -------------

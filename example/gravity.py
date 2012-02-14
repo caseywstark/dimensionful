@@ -6,20 +6,19 @@ Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 
-from dimensionful.quantity import Quantity
-from dimensionful.constants import G
+# Import the gravitational constant and the Quantity class
+from dimensionful import G, Quantity
 
-if __name__ == "__main__":
+# Supply the mass of Earth, mass of Sun, and the distance between.
+mass_earth = Quantity(5.9742e27, "g")
+mass_sun = Quantity(1.0, "Msun")
+distance = Quantity(1.0, "AU")
 
-    # Supply the mass of Earth, mass of Sun, and the distance between.
-    m1 = Quantity(5.9742e27, "g")
-    m2 = Quantity(1.98892e33, "g")
-    r = Quantity(1.0, "AU")
+# Calculate it
+force_gravity = G * mass_earth * mass_sun / distance**2
+force_gravity.convert_to_cgs()
 
-    # Calculate it
-    force_gravity = G * m1 * m2 / r**2
-
-    # Report
-    print ""
-    print "The force of gravity between the Earth and Sun is %s" % force_gravity
-    print ""
+# Report
+print ""
+print "The force of gravity between the Earth and Sun is %s" % force_gravity
+print ""
