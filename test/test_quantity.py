@@ -95,10 +95,6 @@ def test_addition():
     except Exception:  # @todo: real exception type
         pass
 
-    print q1
-    print q5
-    print q1 + q5
-
     assert q1 + q5 == q6
 
 def test_subtraction():

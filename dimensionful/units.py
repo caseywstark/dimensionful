@@ -223,19 +223,12 @@ class Unit(Expr):
         if isinstance(unit_expr, Symbol):
             is_atomic = True
 
-        print ""
-        print unit_expr
-        print cgs_value
-        print dimensions
-
         # this call handles if there is not enough information between the three
         # arguments and our known unit symbols
+        # @todo: clean up this logic... it works now, but it could be cleaned
+        # up quite a bit.
         this_cgs_value, this_dimensions = \
             get_unit_data_from_expr(unit_expr, cgs_value, dimensions)
-
-        print this_cgs_value
-        print this_dimensions
-        print ""
 
         # init obj with superclass construct
         obj = Expr.__new__(cls, **assumptions)
@@ -279,10 +272,6 @@ class Unit(Expr):
 
     def __div__(self, right_object):
         """ Divide Unit by right_object (Unit). """
-        print self.expr, right_object.expr, self.expr / right_object.expr
-        print self.cgs_value, right_object.cgs_value, self.cgs_value / right_object.cgs_value
-        print self.dimensions, right_object.dimensions, self.dimensions / right_object.dimensions
-
         return Unit(self.expr / right_object.expr,
                     self.cgs_value / right_object.cgs_value,
                     self.dimensions / right_object.dimensions)
