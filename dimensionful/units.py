@@ -313,7 +313,7 @@ def lookup_unit_symbol(symbol_string):
             return (unit_data[0] * prefix_value, unit_data[1])
 
     # no dice
-    raise Exception("Unknown unit symbol '%s'. Please supply them when creating this object." % symbol_string)
+    raise Exception("Lookup failed. Unknown unit symbol '%s'. Please supply the dimensions and cgs value when creating this object." % symbol_string)
 
 # util function
 def get_conversion_factor(old_units, new_units):
