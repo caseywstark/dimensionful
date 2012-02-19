@@ -1,6 +1,6 @@
 """
 
-Define the common units, in the array of powers form.
+Define some common units, so users can import the objects directly.
 
 Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
