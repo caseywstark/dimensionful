@@ -9,10 +9,9 @@ Example
 -------
 
 >>> import numpy as np
->>> from dimensionful.units import Unit
->>> from dimensionful.quantity import Quantity
+>>> from dimensionful import Unit, Quantity
 >>>
->>> force_units = Unit("g cm s^-2")
+>>> force_units = Unit("g * cm * s**-2")
 >>> force_data = np.random.random(4)
 >>> force_a = Quantity(force_data, force_units)
 >>>
@@ -21,52 +20,67 @@ Example
 >>>
 >>> energy_a = force_a * distance_a
 >>> energy_a
-[ 0.40391448  0.44528124  0.10094044  0.00189099] g cm^2 s^-2
+[ 0.40391448  0.44528124  0.10094044  0.00189099] cm**2*g/s**2
 
 
 Design
 ------
 
 A Unit is an object with dimensions and a reference value. For now, we just use
-the ``conversion_factor`` attribute to store the conversion to cgs values (of
+the ``cgs_value`` attribute to store the conversion to cgs values (of
 whatever dimension).
 
-A Quantity is an object with dimensions, a reference value, and data. The data
-is completely arbitrary.
+A Quantity is an object with data and Unit object. The data is completely
+arbitrary.
 
 There are several ways to create units and quantities.
 
-Units created with a symbol string: Dimensionful translates a string of
-space-delimited unit symbols into the proper dimensions and conversions to CGS.
+Units created with a symbol string: Dimensionful parses a string of symbols
+into a Unit with the correct dimensions and cgs value. Expression parsing is
+done by calling ``sympy.parsing.sympy_parser.parse_expr`` on the argument.
 
-    >>> Unit("cm s^-1")
-        cm s^-1
-    >>> Unit("pc Myr^-1")
-        pc Myr^-1
+    >>> Unit("cm * s**-1")
+        cm/s
+    >>> Unit("pc * Myr**-1")
+        pc/Myr
 
-Units created with an array of powers: You can create units by specifying the
-power of base units with an array-like.
+Dimensionful looks up the symbols in the expression to determine dimensions and
+conversion factors. If it does not find the symbol in its "known" symbols, it
+barfs.
 
-    >>> Unit((1, 1, -1, 0))
-        g cm s^-1
-    >>> Unit(numpy.array((1, 1, -1, 0)))
-        g cm s^-1
+    >>> Unit("aaa")
+    Exception: Lookup failed. Unknown unit symbol 'aaa'. Please supply the
+    dimensions and cgs value when creating this object.
+    >>> from dimensionful import energy
+    >>> Unit("aaa", dimensions=energy, cgs_value=42)
+    aaa
 
-You create quantities with any data you want as the first argument and the units
-as the second argument. You can pass a unit object as the units argument, or use
-a string or array as above (these are passed on to the Unit constructor).
+Units created with a sympy expression: Works the same as the string case, but
+it does not have to call ``sympy.parsing.sympy_parser.parse_expr`` to convert
+it.
 
-    >>> speed_unit = Unit("m s^-1")
+    >>> from sympy import Symbol
+    >>> Unit(Symbol("cm") / Symbol("s"))
+    cm/s
+
+Units created from other units: Multiplying Units with each other and taking
+Units to powers returns new Units.
+
+    >>> from dimensionful import erg, s
+    >>> new_unit = erg / s
+    >>> new_unit.dimensions
+    (length)**2*(mass)/(time)**3
+
+You create Quantities with any data you want as the first argument and the units
+as the second argument. You can pass a Unit object as the units argument, or use
+a string or sympy expression as above (these are passed on to the Unit
+constructor).
+
+    >>> speed_unit = Unit("m / s")
     >>> Quantity(3.0e8, speed_unit)
-        3.0e+08 m s^-1
-    >>> Quantity(3.0e8, "m s^-1")  # equivalent
-        3.0e+08 m s^-1
-    >>> Quantity(3.0e8, (0, 1, -1, 0))  # not the same! base units are cgs so...
-        3.0e+08 cm s^-1
-
-Note that a quantity object with a single-valued ``data`` attribute is
-equivalent to a unit object with a ``conversion_factor`` attribute of the same
-value.
+        300000000.0 m/s
+    >>> Quantity(3.0e8, "m / s")  # equivalent
+        300000000.0 m/s
 
 
 Code layout
@@ -78,15 +92,15 @@ Just some notes to give developers an idea of where to hack on things.
 ``dimensionful/common_units``
 +++++++++++++++++++++++++++++
 
-More of a data store for possible unit definitions. We use ``unit_symbols_dict``
-for symbol lookup when creating units, and ``unit_prefixes`` for prefix lookup.
+Creates objects of common Units. This is so they can be easily imported like,
+``from dimensionful import dyne``.
 
 
 ``dimensionful/constants``
 ++++++++++++++++++++++++++
 
-Another data store like file. This one holds Unit objects that are typically
-thought of as "constants" in science and engineering.
+Another data store like file. This one holds Quantity objects of common physical
+constants, like hbar.
 
 
 ``dimensionful/quantity``
@@ -98,8 +112,8 @@ Holds the Quantity class.
 ``dimensionful/units``
 ++++++++++++++++++++++
 
-Holds some library definitions (number of base units and fixed order), utils,
-and the Unit class.
+Holds the known units data structures, some unit util functions, and the Unit
+class.
 
 
 ``example/*``
