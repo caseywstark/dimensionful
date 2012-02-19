@@ -155,9 +155,13 @@ class Unit(Expr):
     ### end sympy conventions
 
     def __repr__(self):
+        if self.expr == 1:
+            return "(dimensionless)"
         return str(self.expr)
 
     def __str__(self):
+        if self.expr == 1:
+            return "(dimensionless)"
         return str(self.expr)
 
     # for sympy.printing

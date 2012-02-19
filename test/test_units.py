@@ -159,11 +159,13 @@ def test_string_representation():
     pc = Unit("pc")
     Myr = Unit("Myr")
     speed = pc / Myr
+    dimensionless = Unit()
 
     assert str(pc) == "pc"
     assert str(Myr) == "Myr"
     assert str(speed) == "pc/Myr"
     assert repr(speed) == "pc/Myr"
+    assert str(dimensionless) == "(dimensionless)"
 
 def test_multiplication():
     """
