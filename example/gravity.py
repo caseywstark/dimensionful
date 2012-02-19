@@ -22,3 +22,5 @@ force_gravity.convert_to_cgs()
 print ""
 print "The force of gravity between the Earth and Sun is %s" % force_gravity
 print ""
+
+# prints "The force of gravity between the Earth and Sun is 3.54296304519e+27 cm*g/s**2"
