@@ -8,13 +8,22 @@ Install
 
 Dimensionful depends on sympy. Please install sympy first, then dimensionful.
 
-    $ pip install sympy
+This early version of dimensionful depends on a new parsing feature of sympy
+that has not made it into a release. For now, you must install the development
+version of sympy:
+
+    $ git clone git://github.com/sympy/sympy.git
+    $ cd sympy
+    $ python setup.py install
+
+This is **temporary**. Eventually this will just be ``pip install sympy``. Then
+install dimensionful:
+
     $ cd dimensionful
     $ python setup.py install
 
-I'm looking into putting the project on pypi, so you can also ``pip install
-dimensionful``. In the meantime, please use the normal distutils installer in
-`setup.py`.
+I'm looking into putting the project on pypi. In the meantime, please use the
+normal distutils installer in `setup.py`.
 
 Example
 -------
