@@ -15,10 +15,11 @@ from sympy import Symbol
 num_base = 4
 
 # The base dimensions
-mass = Symbol("(mass)")
-length = Symbol("(length)")
-time = Symbol("(time)")
-temperature = Symbol("(temperature)")
+mass = Symbol("(mass)", positive=True)
+length = Symbol("(length)", positive=True)
+time = Symbol("(time)", positive=True)
+temperature = Symbol("(temperature)", positive=True)
+base_dimensions = [mass, length, time, temperature]
 
 # If something is dimensionless, its dimension is just 1.
 dimensionless = mass**0 * length**0 * time**0 * temperature**0
@@ -53,4 +54,7 @@ momentum = mass * velocity
 force    = mass * acceleration
 energy   = force * length
 power    = energy / time
-charge   = (energy * length)**(1/2)
+charge   = (energy * length)**(1.0/2)
+
+electric_field = charge / length**2
+magnetic_field = electric_field
