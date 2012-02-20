@@ -207,6 +207,7 @@ def test_power():
 
     """
     from dimensionful.dimensions import mass, length, time, temperature
+    from sympy import nsimplify
 
     pc_cgs = 3.08568e18
     mK_cgs = 1e-3
@@ -218,9 +219,10 @@ def test_power():
     assert u2.dimensions == u1_dims**2
     assert u2.cgs_value == (pc_cgs**2 * mK_cgs**4)**2
 
-    u3 = u1**(-1./3)
-    assert u3.dimensions == u1_dims**(-1./3)
-    assert u3.cgs_value == (pc_cgs**2 * mK_cgs**4)**(-1./3)
+    u3 = u1**(-1.0/3)
+
+    assert u3.dimensions == nsimplify(u1_dims**(-1.0/3))
+    assert u3.cgs_value == (pc_cgs**2 * mK_cgs**4)**(-1.0/3)
 
 def test_cgs_equivalent():
     """
