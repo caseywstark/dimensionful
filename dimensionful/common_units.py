@@ -41,3 +41,5 @@ Tsum = Unit("Tsun")
 AU = Unit("AU")
 pc = Unit("pc")
 ly = Unit("ly")
+
+gauss = Unit("gauss")

@@ -6,7 +6,7 @@ Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 
-from sympy import Expr, Mul, nsimplify, Number, Pow, Symbol, sympify
+from sympy import Expr, Mul, nsimplify, Number, posify, Pow, Symbol, sympify
 from sympy.parsing.sympy_parser import parse_expr
 
 from dimensionful.dimensions import *
@@ -53,6 +53,9 @@ unit_symbols_dict = {
 
     # other energy units
     "eV": (1.6021766e12, energy),
+
+    # electric stuff
+    "gauss": (1, magnetic_field),
 }
 
 # This dictionary formatting from magnitude package, credit to Juan Reyero.
@@ -122,7 +125,10 @@ class Unit(Expr):
             raise Exception("Unit representation must be a string or sympy Expr. %s is a %s" % (unit_expr, type(unit_expr)))
         # done with argument checking...
 
+        # sympify and posify the expr
         unit_expr = sympify(unit_expr)
+        p, r = posify(unit_expr)
+        unit_expr = p.subs(r)
 
         # see if the unit is atomic.
         is_atomic = False
@@ -228,7 +234,7 @@ class Unit(Expr):
 
     def get_cgs_equivalent(self):
         """ Create and return dimensionally-equivalent cgs units. """
-        cgs_units_string = "g**%s * cm**%s * s**%s * K**%s" % \
+        cgs_units_string = "g**(%s) * cm**(%s) * s**(%s) * K**(%s)" % \
             (self.dimensions.as_coeff_exponent(mass)[1],
              self.dimensions.as_coeff_exponent(length)[1],
              self.dimensions.as_coeff_exponent(time)[1],
