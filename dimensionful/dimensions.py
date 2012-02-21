@@ -6,7 +6,7 @@ Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 
-from sympy import Symbol
+from sympy import Symbol, Rational
 
 # NB: For sanity, we use Gaussian E&M conventions. That is, charge is not
 # a fundamental unit and you must use the appropriate form of E&M laws.
@@ -54,7 +54,7 @@ momentum = mass * velocity
 force    = mass * acceleration
 energy   = force * length
 power    = energy / time
-charge   = (energy * length)**(1.0/2)
+charge   = (energy * length)**Rational(1, 2)  # proper 1/2 power
 
 electric_field = charge / length**2
 magnetic_field = electric_field
