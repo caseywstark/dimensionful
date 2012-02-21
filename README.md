@@ -6,7 +6,7 @@ A simple library for making your data dimensionful.
 Install
 -------
 
-Dimensionful depends on sympy. Please install sympy first.
+Dimensionful depends on sympy-0.71+. Please install (or upgrade) sympy first.
 
     $ pip install sympy
 
