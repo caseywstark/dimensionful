@@ -6,18 +6,14 @@ A simple library for making your data dimensionful.
 Install
 -------
 
-Dimensionful depends on sympy. Please install sympy first, then dimensionful.
+Dimensionful depends on sympy. Please install sympy first.
 
-This early version of dimensionful depends on a new parsing feature of sympy
-that has not made it into a release. For now, you must install the development
-version of sympy:
+    $ pip install sympy
 
-    $ git clone git://github.com/sympy/sympy.git
-    $ cd sympy
-    $ python setup.py install
+If you do not have pip in your current environment, I recommend installing it
+with ``easy_install pip``.
 
-This is **temporary**. Eventually this will just be ``pip install sympy``. Then
-install dimensionful:
+Then install dimensionful.
 
     $ cd dimensionful
     $ python setup.py install
