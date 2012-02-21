@@ -125,10 +125,11 @@ class Unit(Expr):
             raise Exception("Unit representation must be a string or sympy Expr. %s is a %s" % (unit_expr, type(unit_expr)))
         # done with argument checking...
 
-        # sympify and posify the expr
+        # sympify, posify, and nsimplify the expr
         unit_expr = sympify(unit_expr)
         p, r = posify(unit_expr)
         unit_expr = p.subs(r)
+        unit_expr = nsimplify(unit_expr)
 
         # see if the unit is atomic.
         is_atomic = False

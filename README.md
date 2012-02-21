@@ -42,7 +42,6 @@ This prints "The force of gravity between the Earth and Sun is
     # Report
     print "The force of gravity between the Earth and Sun is %s" % force_gravity
 
-
 You can also find this in the `example` directory.
 
 Documentation

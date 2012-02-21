@@ -83,6 +83,39 @@ constructor).
         300000000.0 m/s
 
 
+Non-Integer power warning
+-------------------------
+
+You might run into using non-integer powers of base units in your units. Here is
+an example of a dimensionality with non-integer powers of base dimensions.
+
+    >>> charge = (energy * length)**(1.0/2)
+    >>> charge
+    (length)**1.5*(mass)**0.5*1/(time)
+
+This results in sympy expressions with sympy.core.numbers.Float powers. This is
+perfectly fine, until you have to compare to other expressions that might have
+sympy.core.numbers.Rational powers.
+
+    >>> charge2 = sqrt(length**3) * sqrt(mass) / time
+    >>> charge2
+    (length)**(3/2)*sqrt((mass))/(time)
+
+These expressions are clearly the same, but sympy won't know that.
+
+    >>> charge == charge2
+    False
+
+When in doubt, I recommend using sympy's ``nsimplify`` function before comparing
+expressions.
+
+    >>> from sympy import nsimplify
+    >>> nsimplify(charge)
+    (length)**(3/2)*sqrt((mass))/(time)
+    >>> nsimplify(charge) == charge2
+    True
+
+
 Code layout
 -----------
 
