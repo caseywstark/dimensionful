@@ -19,7 +19,7 @@ required_precision = 4
 
 def test_creation_with_unit_object():
     """
-    Create a quantity object with a unit object as ``unit`` parameter.
+    Create a Quantity with a Unit object as `unit` arg.
 
     """
     u1 = Unit("Mpc")
@@ -30,7 +30,7 @@ def test_creation_with_unit_object():
 
 def test_creation_with_unit_string():
     """
-    Create a quantity object with a unit symbol as ``unit`` parameter.
+    Create a Quantity with a unit symbol string as `unit` arg.
 
     """
     u1 = Unit("Mpc")
@@ -41,7 +41,7 @@ def test_creation_with_unit_string():
 
 def test_string_representation():
     """
-    Check how a quantity prints.
+    Check how a Quantity prints.
 
     """
     q1 = Quantity(1.0, "Mpc/yr")
@@ -79,6 +79,8 @@ def test_convert_bad_dimensions():
         q1.convert_to(u1)
     except Exception:
         pass
+    else:
+        assert False
 
 def test_convert_to_cgs():
     """
@@ -125,106 +127,179 @@ def test_get_in_cgs():
     assert equal_sigfigs(q2.data, 1e-29, required_precision)
     assert q2.units == u2
 
+def test_equality():
+    """
+    Test that Quantity equality checks work.
+
+    """
+    q1 = Quantity(1.0, "g * cm * s * K")
+    q2 = Quantity(1.0, "g * cm * s * K")
+    q3 = Quantity(1.0, "kg * cm * ms * K")
+    q4 = Quantity(1.0 * 1e3, "g * cm * s * mK")
+
+    assert q1 == q2
+    assert q2 == q3
+    assert q3 == q4
+
+    # different type fail
+    number = 1.0
+    try:
+        q1 == number
+    except Exception:
+        pass
+    else:
+        assert False
+
+    # different dimensions fail
+    q5 = Quantity(1.0, "g * cm * K")
+    try:
+        q1 == q5
+    except Exception:
+        pass
+    else:
+        assert False
+
 def test_addition():
     """
     Add two quantities.
 
     """
-    q1 = Quantity(1.0, "cm * s**-1")  # plus
-    q2 = Quantity(2.0, "cm * s**-1")  # equals
+    q1 = Quantity(1.0, "cm * s**-1")
+    q2 = Quantity(2.0, "cm * s**-1")
     q3 = Quantity(3.0, "cm * s**-1")
-
-    q4 = Quantity(1.0, "cm")  # wrong dimension
-
+    q4 = Quantity(1.0, "cm")
     q5 = Quantity(1.0, "km * hr**-1")
     q6 = Quantity(.01 + 1.e3 / 3600, "m * s**-1")
+    q7 = Quantity(1.0, Unit())
+    q8 = Quantity(2.0, Unit())
+    number = 1.0
 
-    assert q1 + q2 == q3
+    # don't need to convert data to different units
+    assert q3 == q1 + q2
+    assert q3 == q2 + q1
 
+    # test data conversion
+    assert q6 == q1 + q5
+    assert q6 == q5 + q1
+
+    # float + dimensionless Quantity
+    assert q8 == q7 + number
+    assert q8 == number + q7
+
+    # fail on different dimensions
     try:
-        dim_fail = q1 + q4
-    except Exception:  # @todo: real exception type
-        pass
-
-    assert q1 + q5 == q6
-
-def test_addition_bad_dims():
-    """
-    Try to add two quantities of different dimension.
-
-    """
-    u1 = Unit("yr / s")  # dimensionless
-    q1 = Quantity(1, u1)
-    number = 4
-    q2 = Quantity(1, "cm * s")
-    q3 = Quantity(1, "cm * s**-1")
-
-    q4 = q1 + number
-
-    assert q4.data == 5
-    assert q4.units == u1
-
-    try:
-        q5 = q2 + q3
+        q1 + q4
     except Exception:
         pass
+    else:
+        assert False
+
+    # fail on float + dimensionful Quantity
+    try:
+        q1 + number
+    except Exception:
+        pass
+    else:
+        assert False
 
 def test_subtraction():
     """
     Subtract two quantities.
 
     """
-    q1 = Quantity(4.0, "cm * s**-1")
+    q1 = Quantity(3.0, "cm * s**-1")
     q2 = Quantity(1.0, "cm * s**-1")
-    q3 = Quantity(3.0, "cm * s**-1")
+    q3 = Quantity(2.0, "cm * s**-1")
     q4 = Quantity(1.0, "cm")
+    q5 = Quantity(1.0, "km * hr**-1")
+    q6 = Quantity(.01 - 1.e3 / 3600, "m * s**-1")
+    q7 = Quantity(1.0, Unit())
+    q8 = Quantity(2.0, Unit())
+    number = 1.0
 
-    assert q1 - q2 == q3
-    #assert Exception q1 - q4
+    # same units
+    assert q3 == q1 - q2
+    assert q3 == -q2 + q1
+
+    # must convert data
+    assert q6 == q2 - q5
+    assert q6 == -q5 + q2
+
+    # float + dimensionless Quantity
+    assert q7 == q8 - number
+    assert q7 == -number + q8
+
+    # fail on different dimensions
+    try:
+        q1 - q4
+    except Exception:
+        pass
+    else:
+        assert False
+
+    # fail on float + dimensionful Quantity
+    try:
+        q1 - number
+    except Exception:
+        pass
+    else:
+        assert False
 
 def test_multiplication():
     """
     Multiply two quantities.
 
     """
+    pc_cgs = 3.08568e18
+    u1 = Unit("g * cm**2 * s**-3 * K")
     q1 = Quantity(2.0, "g * cm**2 * s**-3 * K")
     q2 = Quantity(3.0, "g * cm**-2 * s**-1 * K")
     q3 = Quantity(6.0, "g**2 * s**-4 * K**2")
+    q4 = Quantity(5.0, "pc / cm / K")
+    q5 = Quantity(2.0 * 5.0, "g * pc * cm * s**(-3)")
+    q6 = Quantity(2.0 * 5.0 * pc_cgs, "g * cm**2 * s**-3")
+    number = 3.0
 
-    assert q1 * q2 == q3
+    assert q3 == q1 * q2
+    assert q3 == q2 * q1
 
-def test_multiplication_with_number():
-    """
-    Multiply a quantity by a float.
+    assert q5 == q1 * q4
+    assert q5 == q4 * q1
+    assert q6 == q1 * q4
+    assert q6 == q4 * q1
 
-    """
-    u1 = Unit("g * cm / s")
-    q1 = Quantity(2, u1)
-    number = 3
+    q7 = number * q1
+    q8 = q1 * number
 
-    q2 = q1 * number
-
-    assert q2.data == 6
-    assert q2.units == u1
+    assert q7.data == 2 * 3
+    assert q8.data == 2 * 3
+    assert q7.units == u1
+    assert q8.units == u1
 
 def test_division():
     """
     Divide two quantities.
 
     """
-    q1 = Quantity(1.0, "g * cm**2 * s**-3 * K")
-    q2 = Quantity(2.0, "g * cm**-2 * s**-1 * K")
-    q3 = Quantity(0.5, "cm**4 * s**-2")
+    pc_cgs = 3.08568e18
+    u1 = Unit("g * cm**2 * s**-3 * K")
+    q1 = Quantity(2.0, "g * cm**2 * s**-3 * K")
+    q2 = Quantity(3.0, "g * cm**-2 * s**-1 * K")
+    q3 = Quantity(2.0 / 3.0, "cm**4 * s**-2")
+    q4 = Quantity(5.0, "pc / cm * K")
+    q5 = Quantity(2.0 / 5.0, "g * cm**3 / pc * s**(-3)")
+    q6 = Quantity(2.0 / 5.0 / pc_cgs, "g * cm**2 * s**-3")
+    number = 3.0
 
-    assert q1 / q2 == q3
+    assert q3 == q1 / q2
 
-def test_equality():
-    """
-    Check equality conditions.
+    assert q5 == q1 / q4
+    assert q6 == q1 / q4
 
-    """
-    # @todo: more rigorous case
-    q1 = Quantity(31536000, "s")
-    q2 = Quantity(1.0, "yr")
+    q7 = number / q1
+    q8 = q1 / number
 
-    assert q1 == q2
+    assert q7.data == 3.0 / 2.0
+    assert q8.data == 2.0 / 3.0
+    assert q7.units == u1**-1
+    assert q8.units == u1
