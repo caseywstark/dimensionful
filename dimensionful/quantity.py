@@ -44,6 +44,7 @@ class Quantity:
     def __str__(self):
         return "%s %s" % (self.data, self.units)
 
+    ### begin unit conversion methods
     def _unit_repr_check_same(self, units):
         """
         Takes a Unit object, or string of known unit symbol, and check that it
@@ -133,7 +134,9 @@ class Quantity:
     def get_data_in_cgs(self):
         """ Returns data in CGS. """
         return self.get_data_in(self.units.get_cgs_equivalent())
+    ### end unit conversion methods
 
+    ### begin operation methods
     def __add__(self, right_object):
         """
         Add this quantity to the object on the right of the `+` operator. Must
@@ -220,6 +223,10 @@ class Quantity:
                          - self.get_data_in(left_object.units)),
                         left_object.units)
 
+    def __neg__(self):
+        """ Negate the data. """
+        return Quantity(-self.data, self.units)
+
     def __mul__(self, right_object):
         """
         Multiply this quantity by the object on the right of the `*` operator.
@@ -294,12 +301,20 @@ class Quantity:
 
         return Quantity(self.data**power, self.units**power)
 
-    ### less common operations
     def __abs__(self):
+        """ Return a Quantity with the abs of the data. """
         return Quantity(abs(self.data), self.units)
 
+    def sqrt(self):
+        """
+        Return sqrt of this Quantity. This is just a wrapper of Quantity.__pow__
+        for numpy.sqrt.
+
+        """
+        return self**(1.0/2)
+
     ### comparison operators
-    # @todo: not sure if these behave as intended
+    # @todo: outsource to a single method with an op argument.
     def __lt__(self, right_object):
         """ Test if this is less than the object on the right. """
         # Check that the other is a Quantity.
