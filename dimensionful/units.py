@@ -352,4 +352,5 @@ def get_conversion_factor(old_units, new_units):
     conversion_factor : float
         ``old_units / new_units``
     """
-    return old_units.cgs_value / new_units.cgs_value
+    # @todo: avoid lossy cast
+    return float(old_units.cgs_value / new_units.cgs_value)
