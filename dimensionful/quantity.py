@@ -61,9 +61,8 @@ class Quantity:
 
     def convert_to(self, units):
         """
-        Convert the data and units to given unit. This does not return the new
-        data -- it overwrites the ``data`` and ``units`` attributes. Use it
-        wisely.
+        Convert the data and units to given unit. This overwrites the ``data``
+        and ``units`` attributes, making no copies, and returns None.
 
         Parameters
         ----------
@@ -78,17 +77,17 @@ class Quantity:
 
     def convert_to_cgs(self):
         """
-        Convert the data and units to cgs equivalent units. This does not return
-        the new data -- it overwrites the ``data`` and ``units`` attributes.
-        Use it wisely.
+        Convert the data and units to the equivalent cgs units. This overwrites
+        the ``data`` and ``units`` attributes, making no copies, and returns
+        None.
 
         """
         self.convert_to(self.units.get_cgs_equivalent())
 
     def get_in(self, units):
         """
-        Returns a new quantity in the given units (manipulates data to match).
-        Does not manipulate this object.
+        Creates a new Quantity with the data in the supplied units, and returns
+        it. Does not modify this object.
 
         Parameters
         ----------
@@ -97,7 +96,7 @@ class Quantity:
 
         Returns
         -------
-        New Quantity object.
+        Quantity object with converted data and supplied units.
 
         """
         new_units = self._unit_repr_check_same(units)
@@ -105,12 +104,20 @@ class Quantity:
         return Quantity(self.data * conversion_factor, new_units)
 
     def get_in_cgs(self):
-        """ Returns a new quantity with CGS values and units. """
+        """
+        Creates a new Quantity with the data in the equivalent cgs units, and
+        returns it. Does not modify this object.
+
+        Returns
+        -------
+        Quantity object with data converted to cgs and cgs units.
+
+        """
         return self.get_in(self.units.get_cgs_equivalent())
 
     def get_data_in(self, units):
         """
-        Returns converted data only.
+        Returns the data, converted to the supplied units.
 
         Parameters
         ----------
@@ -119,7 +126,8 @@ class Quantity:
 
         Returns
         -------
-        This quantity's data, in the desired units.
+        ``data`` attribute, multiplied by the conversion factor to the supplied
+        units.
 
         """
         new_units = self._unit_repr_check_same(units)
@@ -132,7 +140,10 @@ class Quantity:
         return self.data * conversion_factor
 
     def get_data_in_cgs(self):
-        """ Returns data in CGS. """
+        """
+        Returns the data, multiplied by the conversion factor to cgs.
+
+        """
         return self.get_data_in(self.units.get_cgs_equivalent())
     ### end unit conversion methods
 
