@@ -147,7 +147,7 @@ class Unit(Expr):
             except ValueError:
                 raise ValueError("Please provide a float for the cgs_value kwarg. I got a '%s'." % cgs_value)
             # check that dimensions is valid
-            dimensions = verify_dimensions(dimensions)
+            dimensions = verify_dimensions(sympify(dimensions))
             # save the values
             this_cgs_value, this_dimensions = cgs_value, dimensions
 
