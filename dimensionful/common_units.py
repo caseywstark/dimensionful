@@ -6,10 +6,8 @@ Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 
-from sympy.core import Integer
-
 from dimensionful.dimensions import *
-from dimensionful.units import Unit, unit_symbols_dict
+from dimensionful.units import Unit
 
 # cgs base units
 g  = Unit("g")
