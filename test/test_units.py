@@ -196,7 +196,7 @@ def test_creation_fail_on_dimensions_type():
     abc = Symbol("abc")
 
     try:
-        u1 = Unit(abc, cgs_value=1, dimensions=4)
+        u1 = Unit(abc, cgs_value=1, dimensions="(mass)")
     except Exception:
         pass
     else:
