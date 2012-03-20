@@ -1,6 +1,6 @@
 """
 
-Physical constants.
+Physical constants in cgs.
 
 Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
@@ -34,4 +34,3 @@ amu = Quantity(1.6605402e-24, g)
 sigma_T = Quantity(6.6524588e-25, cm**2)
 sigma_SB = Quantity(5.67e-5, g * K**(-4) * s**(-3))
 a = Quantity(7.5657e-15, g * K**(-4) * cm**(-1) * s**(-2))
-
