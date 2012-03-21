@@ -52,7 +52,7 @@ unit_symbols_dict = {
     "H_0": (2.3e-18, rate),  # check cf
 
     # other energy units
-    "eV": (1.6021766e12, energy),
+    "eV": (1.6021766e-12, energy),
 
     # electric stuff
     "gauss": (1, magnetic_field),
