@@ -6,10 +6,10 @@ Copyright 2012, Casey W. Stark. See LICENSE.txt for more information.
 
 """
 
-import numpy as np
-
 from dimensionful.common_units import *
 from dimensionful.quantity import Quantity
+
+pi = 3.141592653589793
 
 # speed of light
 c = Quantity(2.99792458e10, cm / s)
@@ -22,7 +22,7 @@ k = Quantity(1.38064e-16, erg / K)
 
 # Planck constant
 h = Quantity(6.626070e-27, erg * s)
-hbar = h / (2 * np.pi)
+hbar = h / (2 * pi)
 
 # atomic constants
 e = Quantity(4.8032068e-10, esu)
