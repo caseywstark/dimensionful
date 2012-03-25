@@ -44,6 +44,22 @@ class Quantity:
     def __str__(self):
         return "%s %s" % (self.data, self.units)
 
+    def make_data_ndarray(self):
+        """
+        Wraps this Quantity's data with ``numpy.ndarray``. If self.data is
+        already an ndarray, this will do nothing.
+
+        Returns itself.
+
+        """
+        try:
+            from numpy import array
+        except ImportError:
+            raise Exception("This method requires the numpy package. Please install it before calling Quantity.make_data_ndarray()")
+
+        self.data = array(self.data)
+        return self
+
     ### begin unit conversion methods
     def _unit_repr_check_same(self, units):
         """
@@ -327,6 +343,22 @@ class Quantity:
 
         """
         return self**(1.0/2)
+
+    def exp(self):
+        """
+        Return exp of this Quantity. Ensures that Quantity is dimensionless,
+        like __pow__.
+
+        """
+        if not self.units.is_dimensionless:
+            raise Exception("The argument of an exponential must be dimensionless. exp(%s) is ill-defined." % self)
+
+        try:
+            from numpy import exp
+        except ImportError:
+            raise Exception("This method requires the numpy package. Please install it before calling exp(Quantity)")
+
+        return exp(self.data)
 
     ### comparison operators
     # @todo: outsource to a single method with an op argument.
