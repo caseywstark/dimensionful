@@ -75,6 +75,8 @@ class Quantity:
         self.data *= conversion_factor
         self.units = new_units
 
+        return self
+
     def convert_to_cgs(self):
         """
         Convert the data and units to the equivalent cgs units. This overwrites
@@ -82,7 +84,7 @@ class Quantity:
         None.
 
         """
-        self.convert_to(self.units.get_cgs_equivalent())
+        return self.convert_to(self.units.get_cgs_equivalent())
 
     def get_in(self, units):
         """
@@ -101,6 +103,7 @@ class Quantity:
         """
         new_units = self._unit_repr_check_same(units)
         conversion_factor = get_conversion_factor(self.units, new_units)
+
         return Quantity(self.data * conversion_factor, new_units)
 
     def get_in_cgs(self):
@@ -137,6 +140,7 @@ class Quantity:
             return self.data
 
         conversion_factor = get_conversion_factor(self.units, new_units)
+
         return self.data * conversion_factor
 
     def get_data_in_cgs(self):
